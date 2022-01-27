@@ -250,6 +250,11 @@ If `compile_time_defs.txt` is old, VSCode C/C++ properties or generated C/C++
 headers will also contain old configurations, which are inconsistent to the
 current ones.
 
+- `compile_time_defs.txt` is not used if it doesn't exist. `mbed-config-gen`
+uses `mbed-tools` package and also the file specified by
+`--additional-macros-path` option to collect Mbed project configurations,
+though some configurations may be missing (e.g., `MBED_CONF_*_PRESENT`).
+
 - `mbed-config-gen` considers the configurations in the following priority:
   1. Configurations in the file specified by `--additional-macros-path` option
   2. Configurations collected by `mbed-tools` package
