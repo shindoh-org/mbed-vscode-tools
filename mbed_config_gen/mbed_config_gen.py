@@ -30,7 +30,7 @@ def _parse_command_line_arguments():
     parser.add_argument("-m", "--mbed-target", type=str, required=True,
                         help="Build target for an Mbed-enabled device " \
                              "(e.g., DISCO_L072CZ_LRWAN1)")
-    parser.add_argument("-p", "--program-path", type=str, required=True,
+    parser.add_argument("-p", "--program-path", type=str, default=".",
                         help="Path to the Mbed program " \
                              "(e.g., the current working directory)")
     parser.add_argument("-b", "--profile", type=str, default="develop",
