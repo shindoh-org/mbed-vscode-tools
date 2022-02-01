@@ -48,7 +48,7 @@ $ pip3 uninstall mbed-config-gen
 
 Use `-h` or `--help` option to print usage:
 ```
-mbed-config-gen [-h] -t {ARM,GCC_ARM} -m MBED_TARGET -p PROGRAM_PATH
+mbed-config-gen [-h] -t {ARM,GCC_ARM} -m MBED_TARGET [-p PROGRAM_PATH]
                 [-b PROFILE]
                 [--mbed-os-path MBED_OS_PATH]
                 [--custom-targets-json CUSTOM_TARGETS_JSON]
