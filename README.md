@@ -67,7 +67,7 @@ mbed-config-gen [-h] -t {ARM,GCC_ARM} -m MBED_TARGET -p PROGRAM_PATH
 ### `-m` or `--mbed-target` option (required)
 - Build target for an Mbed-enabled device (e.g., `DISCO_L072CZ_LRWAN1`).
 
-### `-p` or `--program-path` option (required)
+### `-p` or `--program-path` option (optional)
 - Path to the Mbed program.
 - By default, it is set to `.` (i.e., the current working directory).
 
