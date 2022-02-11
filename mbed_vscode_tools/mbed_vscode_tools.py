@@ -1,5 +1,10 @@
 import click
 import pathlib
+import json
+
+
+CONFFILE_NAME = '.mbed-vscode-tools-conf'
+CONFFILE_INDENT_LENGTH = 4
 
 
 @click.group()
@@ -22,7 +27,7 @@ def cmd():
         resolve_path=True, path_type=pathlib.Path),
     default=pathlib.Path().cwd(), show_default=True,
     help='Path to an mbed program directory. '
-         'If not specified, it\'s set to your working directory.')
+    'If not specified, it\'s set to your working directory.')
 def configure(
         toolchain: str, mbed_target: str,
         profile: str, program_path: pathlib.Path) -> None:
@@ -33,10 +38,15 @@ def configure(
 
     [MBED_TARGET] A build target for an mbed-enabled device (e.g. DISCO_L072CZ_LRWAN1).
     """
-    click.echo(toolchain)
-    click.echo(mbed_target)
-    click.echo(profile)
-    click.echo(type(program_path))
+
+    # Save config json file
+    config = {
+        'toolchain': toolchain,
+        'mbed_target': mbed_target,
+        'profile': profile,
+        'program_path': str(program_path)}
+    with (program_path / CONFFILE_NAME).open('w') as file:
+        json.dump(config, file, indent=CONFFILE_INDENT_LENGTH)
 
 
 @cmd.command()
