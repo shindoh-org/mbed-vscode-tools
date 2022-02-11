@@ -51,13 +51,13 @@ def configure(
     if not cmake_build_dir.exists():
         raise Exception(
             f'Could not find the cmake build directory {cmake_build_dir} . '
-            f'Run \'$ mbed-tools configure\' first.')
+            f'Run \'$ mbed-tools configure\' properly first.')
 
     # Check if cmake configuration file exists
     if not cmake_conf.exists():
         raise Exception(
             f'Could not find the cmake configuration file {cmake_conf} . '
-            f'Run \'$ mbed-tools configure\' first.')
+            f'Run \'$ mbed-tools configure\' properly first.')
 
     # Save config json file
     config = {
@@ -76,7 +76,8 @@ def configure(
         '-GNinja'], capture_output=True)
     if ret.returncode != 0:
         raise Exception(
-            'Failed to generate build.ninja;\n%s' % ret.stderr.decode('utf-8'))
+            'Failed to generate build.ninja for some reasons. '
+            'Below is the error output generated from cmake;\n%s' % ret.stderr.decode('utf-8'))
 
 
 @cmd.command()
