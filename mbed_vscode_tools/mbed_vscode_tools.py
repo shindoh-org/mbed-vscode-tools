@@ -1,10 +1,15 @@
+from decimal import Subnormal
 import click
 import pathlib
 import json
+import subprocess
 
 
-CONFFILE_NAME = '.mbed-vscode-tools-conf'
-CONFFILE_INDENT_LENGTH = 4
+TOOL_CONFFILE_NAME = '.mbed-vscode-tools.json'
+TOOL_CONFFILE_INDENT_LENGTH = 4
+BUILD_CMAKE_ROOTDIR_NAME = 'cmake_build'
+BUILD_CMAKE_CONFFILE_NAME = 'mbed_config.cmake'
+BUILD_NINJA_CONFFILE_NAME = 'build.ninja'
 
 
 @click.group()
@@ -39,14 +44,39 @@ def configure(
     [MBED_TARGET] A build target for an mbed-enabled device (e.g. DISCO_L072CZ_LRWAN1).
     """
 
+    cmake_build_dir = program_path / BUILD_CMAKE_ROOTDIR_NAME / mbed_target / profile / toolchain
+    cmake_conf = cmake_build_dir / BUILD_CMAKE_CONFFILE_NAME
+
+    # Check if cmake build directory exists
+    if not cmake_build_dir.exists():
+        raise Exception(
+            f'Could not find the cmake build directory {cmake_build_dir} . '
+            f'Run \'$ mbed-tools configure\' first.')
+
+    # Check if cmake configuration file exists
+    if not cmake_conf.exists():
+        raise Exception(
+            f'Could not find the cmake configuration file {cmake_conf} . '
+            f'Run \'$ mbed-tools configure\' first.')
+
     # Save config json file
     config = {
         'toolchain': toolchain,
         'mbed_target': mbed_target,
         'profile': profile,
         'program_path': str(program_path)}
-    with (program_path / CONFFILE_NAME).open('w') as file:
-        json.dump(config, file, indent=CONFFILE_INDENT_LENGTH)
+    with (program_path / TOOL_CONFFILE_NAME).open('w') as file:
+        json.dump(config, file, indent=TOOL_CONFFILE_INDENT_LENGTH)
+
+    # Generate build.ninja
+    ret = subprocess.run([
+        'cmake',
+        '-S', str(program_path),
+        '-B', str(cmake_build_dir),
+        '-GNinja'], capture_output=True)
+    if ret.returncode != 0:
+        raise Exception(
+            'Failed to generate build.ninja;\n%s' % ret.stderr.decode('utf-8'))
 
 
 @cmd.command()
