@@ -123,7 +123,7 @@ def configure(
     with tool_conf_file.open('w') as file:
         json.dump(conf, file, indent=TOOL_CONFFILE_INDENT_LENGTH)
     click.echo(f'---- The tool config file was saved at {tool_conf_file} .')
-    click.echo('[Configure succeeded!]')
+    click.echo('---- Configure succeeded!')
 
 
 @cmd.command()
