@@ -1,4 +1,3 @@
-import re
 import click
 import pathlib
 import json
