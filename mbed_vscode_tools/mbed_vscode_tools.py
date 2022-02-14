@@ -83,7 +83,7 @@ def configure(
         raise Exception(
             f'More than two \"{VSCODE_CONFENTRY_BASE}\" entries found in {vscode_conf_file} . '
             f'Leave one \"{VSCODE_CONFENTRY_BASE}\" entry and remove the others.')
-    click.echo('---- c_cpp_properties.json validity check done.')
+    click.echo('---- VSCode c_cpp_properties.json check done.')
 
     # Check if cmake build directory exists
     if not cmake_build_dir.exists():
@@ -122,7 +122,7 @@ def configure(
         'vscode_conf_file': str(vscode_conf_file)}
     with tool_conf_file.open('w') as file:
         json.dump(conf, file, indent=TOOL_CONFFILE_INDENT_LENGTH)
-    click.echo(f'---- The tool config file was saved at {tool_conf_file} .')
+    click.echo(f'---- The tool config file was saved at <{tool_conf_file}>.')
     click.echo('---- Configure succeeded!')
 
 
