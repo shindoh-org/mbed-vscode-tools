@@ -31,7 +31,7 @@ def cmd():
         resolve_path=True, path_type=pathlib.Path),
     default=pathlib.Path().cwd(), show_default=True,
     help='Path to an mbed program directory. '
-         'If not specified, it\'s set to your working directory.')
+         'If not specified, it\'s set to your current working directory.')
 def configure(
         mbed_toolchain: str, mbed_target: str, vscode_conf_file: pathlib.Path,
         mbed_profile: str, mbed_program_dir: pathlib.Path) -> None:
@@ -48,7 +48,6 @@ def configure(
     Use \"MbedGenerated\" entry for your vscode intellisense.
     """
 
-    click.echo('[Configure]')
     cmake_build_dir = \
         mbed_program_dir / \
         consts.CMAKE_ROOTDIR_NAME / \
@@ -73,21 +72,18 @@ def configure(
         raise Exception(
             f'More than two \"{consts.VSCODE_CONFENTRY_BASE}\" entries found in {vscode_conf_file}. '
             f'Leave one \"{consts.VSCODE_CONFENTRY_BASE}\" entry and remove the others.')
-    click.echo('---- c_cpp_properties.json validation done.')
 
     # Check if cmake build directory exists
     if not cmake_build_dir.exists():
         raise Exception(
             f'Could not find the cmake build directory ({cmake_build_dir}). '
             'Run \'$ mbed-tools configure\' first.')
-    click.echo(f'---- CMake build directory ({cmake_build_dir}) found.')
 
     # Check if cmake configuration file exists
     if not cmake_conf_file.exists():
         raise Exception(
             f'Could not find the cmake config file ({cmake_conf_file}). '
             'Run \'$ mbed-tools configure\' first.')
-    click.echo(f'---- CMake config file ({cmake_conf_file}) found.')
 
     # Generate build.ninja
     ret = subprocess.run([
@@ -100,7 +96,6 @@ def configure(
         raise Exception(
             'Failed to generate build.ninja for some reasons. '
             f'Here\'s the error output from cmake >>\n{err}')
-    click.echo('---- build.ninja generation done.')
 
     # Save config json file
     tool_conf_file = mbed_program_dir / consts.TOOL_CONFFILE_NAME
@@ -115,7 +110,8 @@ def configure(
         'ninja_build_file': str(cmake_build_dir / consts.NINJA_BUILDFILE_NAME)}
     with tool_conf_file.open('w') as file:
         json.dump(conf, file, indent=consts.TOOL_CONFFILE_INDENT_LENGTH)
-    click.echo(f'---- Tool config file was saved at <{tool_conf_file}>.')
+    click.echo(click.style('[CONFIGURE SUCCEEDED]', fg='green', bold=True))
+    click.echo(f'Your tool config file was saved as <{tool_conf_file}>.')
 
 
 @cmd.command()
@@ -131,14 +127,12 @@ def update(tool_conf_file: pathlib.Path) -> None:
     """Update your c_cpp_properties.json
     """
 
-    click.echo('[Update]')
     # Check if tool configuration file exists
     if not tool_conf_file.exists():
         raise Exception(
             f'Could not find your tool configuration file at <{tool_conf_file}>.'
             'Set a correct path into \'--tool-conf-path\' option, or '
             'run \'$ mbed-vscode-tools configure\' if you haven\'t done yet.')
-    click.echo('---- Tool configuration file found.')
 
     # Load tool configuration file
     with tool_conf_file.open('r') as file:
@@ -152,7 +146,6 @@ def update(tool_conf_file: pathlib.Path) -> None:
         raise Exception(
             f'Could not find build.ninja at <{ninja_build_file}>. '
             'Run \'$ mbed-vscode-tools configure\' first.')
-    click.echo('---- build.ninja found.')
 
     # Parse build.ninja
     defines, includes = [], []
@@ -185,9 +178,6 @@ def update(tool_conf_file: pathlib.Path) -> None:
     # Manually add one include
     # TODO: Should parse this automatically as well
     includes.append(str(cmake_build_dir / '_deps' / 'greentea-client-src' / 'include'))
-
-    # Show build.ninja parse result
-    click.echo(f'---- {len(defines)} defines & {len(includes)} include paths were extracted from <{ninja_build_file}>.')
 
     # Load c_cpp_properties.json
     if not vscode_conf_file.exists():
@@ -225,7 +215,10 @@ def update(tool_conf_file: pathlib.Path) -> None:
     vscode_conf['configurations'] = new_entries
     with vscode_conf_file.open('w') as file:
         json.dump(vscode_conf, file, indent=consts.VSCODE_CONFFILE_INDENT_LENGTH)
-    click.echo(f'---- Your c_cpp_properties ({vscode_conf_file}) updated.')
+
+    # Prompt
+    click.echo(click.style('[UPDATE SUCCEEDED]', fg='green', bold=True))
+    click.echo(f'Your c_cpp_properties.json ({tool_conf_file}) has been updated.')
 
 
 def main():
