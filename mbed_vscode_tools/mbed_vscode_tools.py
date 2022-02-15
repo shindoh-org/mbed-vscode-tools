@@ -12,6 +12,15 @@ def cmd():
 
 
 @cmd.command()
+def template() -> None:
+    """Generate a template for your c_cpp_properties.json
+    """
+    # Prompt
+    click.echo(click.style('[TEMPLATE SUCCEEDED]', fg='green', bold=True))
+    click.echo(f'A template for your c_cpp_properties.json has been saved as <>.')
+
+
+@cmd.command()
 @click.argument('mbed-toolchain', type=click.Choice(['GCC_ARM', 'ARM']))
 @click.argument('mbed-target', type=str)
 @click.argument(
@@ -66,24 +75,24 @@ def configure(
         vscode_conf['configurations'])))
     if n < 1:  # No base entries
         raise Exception(
-            f'Could not find \"{consts.VSCODE_CONFENTRY_BASE}\" entry in {vscode_conf_file}. '
-            f'Create \"{consts.VSCODE_CONFENTRY_BASE}\" entry.')
+            f'Could not find \"{consts.VSCODE_CONFENTRY_BASE}\" config entry in {vscode_conf_file}. '
+            f'Create \"{consts.VSCODE_CONFENTRY_BASE}\" config entry.')
     elif n > 1:  # Duplication
         raise Exception(
-            f'More than two \"{consts.VSCODE_CONFENTRY_BASE}\" entries found in {vscode_conf_file}. '
-            f'Leave one \"{consts.VSCODE_CONFENTRY_BASE}\" entry and remove the others.')
+            f'More than two \"{consts.VSCODE_CONFENTRY_BASE}\" config entries found in {vscode_conf_file}. '
+            f'Leave one \"{consts.VSCODE_CONFENTRY_BASE}\" config entry and remove the others.')
 
     # Check if cmake build directory exists
     if not cmake_build_dir.exists():
         raise Exception(
             f'Could not find the cmake build directory ({cmake_build_dir}). '
-            'Run \'$ mbed-tools configure\' first.')
+            'Run \"$ mbed-tools configure\" first.')
 
     # Check if cmake configuration file exists
     if not cmake_conf_file.exists():
         raise Exception(
             f'Could not find the cmake config file ({cmake_conf_file}). '
-            'Run \'$ mbed-tools configure\' first.')
+            'Run \"$ mbed-tools configure\" first.')
 
     # Generate build.ninja
     ret = subprocess.run([
@@ -132,7 +141,7 @@ def update(tool_conf_file: pathlib.Path) -> None:
         raise Exception(
             f'Could not find your tool configuration file at <{tool_conf_file}>.'
             'Set a correct path into \'--tool-conf-path\' option, or '
-            'run \'$ mbed-vscode-tools configure\' if you haven\'t done yet.')
+            'run \"$ mbed-vscode-tools configure\" if you haven\'t done yet.')
 
     # Load tool configuration file
     with tool_conf_file.open('r') as file:
@@ -145,7 +154,7 @@ def update(tool_conf_file: pathlib.Path) -> None:
     if not ninja_build_file.exists():
         raise Exception(
             f'Could not find build.ninja at <{ninja_build_file}>. '
-            'Run \'$ mbed-vscode-tools configure\' first.')
+            'Run \"$ mbed-vscode-tools configure\" first.')
 
     # Parse build.ninja
     defines, includes = [], []
@@ -184,7 +193,7 @@ def update(tool_conf_file: pathlib.Path) -> None:
         raise Exception(
             f'Could not find your c_cpp_properties.json at <{vscode_conf_file}>, '
             f'though the tool configuration file ({tool_conf_file}) points the path. '
-            'Run \'$ mbed-vscode-tools configure\' again to fix the problem.')
+            'Run \"$ mbed-vscode-tools configure\" again to fix the problem.')
     with vscode_conf_file.open(mode='r') as file:
         vscode_conf = json.load(file)
 
