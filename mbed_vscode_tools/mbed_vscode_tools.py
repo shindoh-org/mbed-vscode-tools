@@ -3,16 +3,7 @@ import pathlib
 import json
 import subprocess
 import copy
-
-
-TOOL_CONFFILE_NAME = '.mbed-vscode-tools.json'
-TOOL_CONFFILE_INDENT_LENGTH = 4
-CMAKE_ROOTDIR_NAME = 'cmake_build'
-CMAKE_CONFFILE_NAME = 'mbed_config.cmake'
-NINJA_BUILDFILE_NAME = 'build.ninja'
-VSCODE_CONFFILE_NAME = 'c_cpp_properties.json'
-VSCODE_CONFENTRY_BASE = 'Mbed'
-VSCODE_CONFENTRY_GENERATED = 'MbedGenerated'
+import consts
 
 
 @click.group()
@@ -60,44 +51,43 @@ def configure(
     click.echo('[Configure]')
     cmake_build_dir = \
         mbed_program_dir / \
-        CMAKE_ROOTDIR_NAME / \
+        consts.CMAKE_ROOTDIR_NAME / \
         mbed_target / \
         mbed_profile / \
         mbed_toolchain
-    cmake_conf_file = cmake_build_dir / CMAKE_CONFFILE_NAME
-    ninja_build_file = cmake_build_dir / NINJA_BUILDFILE_NAME
+    cmake_conf_file = cmake_build_dir / consts.CMAKE_CONFFILE_NAME
 
-    # Load vscode configuration file
+    # Load c_cpp_properties.json
     with vscode_conf_file.open(mode='r') as file:
         vscode_conf = json.load(file)
 
-    # Check validity of the specified c_cpp_properties.json
-    n = len(list(filter(  # The number of "Mbed" entries
-        lambda entry: entry['name'] == VSCODE_CONFENTRY_BASE,
+    # Check validity of c_cpp_properties.json
+    n = len(list(filter(  # The number of base entries (must be only one)
+        lambda entry: entry['name'] == consts.VSCODE_CONFENTRY_BASE,
         vscode_conf['configurations'])))
-    if n < 1:  # No "Mbed" entries
+    if n < 1:  # No base entries
         raise Exception(
-            f'Could not find \"{VSCODE_CONFENTRY_BASE}\" entry in {vscode_conf_file} . '
-            f'Create \"{VSCODE_CONFENTRY_BASE}\" entry first.')
-    elif n > 1:  # Duplicated "Mbed" entries
+            f'Could not find \"{consts.VSCODE_CONFENTRY_BASE}\" entry in {vscode_conf_file}. '
+            f'Create \"{consts.VSCODE_CONFENTRY_BASE}\" entry.')
+    elif n > 1:  # Duplication
         raise Exception(
-            f'More than two \"{VSCODE_CONFENTRY_BASE}\" entries found in {vscode_conf_file} . '
-            f'Leave one \"{VSCODE_CONFENTRY_BASE}\" entry and remove the others.')
-    click.echo('---- VSCode c_cpp_properties.json check done.')
+            f'More than two \"{consts.VSCODE_CONFENTRY_BASE}\" entries found in {vscode_conf_file}. '
+            f'Leave one \"{consts.VSCODE_CONFENTRY_BASE}\" entry and remove the others.')
+    click.echo('---- c_cpp_properties.json validation done.')
 
     # Check if cmake build directory exists
     if not cmake_build_dir.exists():
         raise Exception(
             f'Could not find the cmake build directory ({cmake_build_dir}). '
-            'Run \'$ mbed-tools configure\' first if you haven\'t done yet.')
-    click.echo('---- CMake build directory found.')
+            'Run \'$ mbed-tools configure\' first.')
+    click.echo(f'---- CMake build directory ({cmake_build_dir}) found.')
 
     # Check if cmake configuration file exists
     if not cmake_conf_file.exists():
         raise Exception(
             f'Could not find the cmake config file ({cmake_conf_file}). '
-            'Run \'$ mbed-tools configure\' first if you haven\'t done yet.')
-    click.echo('---- CMake config file found.')
+            'Run \'$ mbed-tools configure\' first.')
+    click.echo(f'---- CMake config file ({cmake_conf_file}) found.')
 
     # Generate build.ninja
     ret = subprocess.run([
@@ -109,21 +99,21 @@ def configure(
         err = ret.stderr.decode('utf-8')
         raise Exception(
             'Failed to generate build.ninja for some reasons. '
-            f'The error output generated from cmake >>\n{err}')
-    click.echo('---- Generated build.ninja.')
+            f'Here\'s the error output from cmake >>\n{err}')
+    click.echo('---- build.ninja generation done.')
 
     # Save config json file
-    tool_conf_file = mbed_program_dir / TOOL_CONFFILE_NAME
+    tool_conf_file = mbed_program_dir / consts.TOOL_CONFFILE_NAME
     conf = {
         'mbed_toolchain': mbed_toolchain,
         'mbed_target': mbed_target,
         'mbed_profile': mbed_profile,
         'mbed_program_dir': str(mbed_program_dir),
-        'vscode_conf_file': str(vscode_conf_file)}
+        'vscode_conf_file': str(vscode_conf_file),
+        'ninja_build_file': str(cmake_build_dir / consts.NINJA_BUILDFILE_NAME)}
     with tool_conf_file.open('w') as file:
-        json.dump(conf, file, indent=TOOL_CONFFILE_INDENT_LENGTH)
-    click.echo(f'---- The tool config file was saved at <{tool_conf_file}>.')
-    click.echo('---- Configure succeeded!')
+        json.dump(conf, file, indent=consts.TOOL_CONFFILE_INDENT_LENGTH)
+    click.echo(f'---- Tool config file was saved at <{tool_conf_file}>.')
 
 
 @cmd.command()
@@ -132,7 +122,7 @@ def configure(
     type=click.Path(
         exists=True, file_okay=True, dir_okay=False,
         resolve_path=True, path_type=pathlib.Path),
-    default=(pathlib.Path().cwd() / TOOL_CONFFILE_NAME), show_default=True,
+    default=(pathlib.Path().cwd() / consts.TOOL_CONFFILE_NAME), show_default=True,
     help='Path to the tool configuration file (.mbed-vscode-tools-conf) generated by configure command. '
          'If not specified, it\'s set to ./.mbed-vscode-tools-conf')
 @click.option(
@@ -164,13 +154,13 @@ def update(tool_conf_file: pathlib.Path, vscode_conf_file_indent_size: int) -> N
     vscode_conf_file = pathlib.Path(tool_conf['vscode_conf_file'])
     cmake_build_dir = \
         mbed_program_dir / \
-        CMAKE_ROOTDIR_NAME / \
+        consts.CMAKE_ROOTDIR_NAME / \
         mbed_target / \
         mbed_profile / \
         mbed_toolchain
 
     # Check if build.ninja exists
-    ninja_build_file = cmake_build_dir / NINJA_BUILDFILE_NAME
+    ninja_build_file = cmake_build_dir / consts.NINJA_BUILDFILE_NAME
     if not ninja_build_file.exists():
         raise Exception(
             f'Could not find build.ninja at ({ninja_build_file}). '
@@ -220,12 +210,12 @@ def update(tool_conf_file: pathlib.Path, vscode_conf_file_indent_size: int) -> N
 
     # Get "Mbed" entry
     base = next(filter(
-        lambda entry: entry['name'] == VSCODE_CONFENTRY_BASE,
+        lambda entry: entry['name'] == consts.VSCODE_CONFENTRY_BASE,
         vscode_conf['configurations']))
 
     # Create "MbedGenerated" entry
     generated = copy.deepcopy(base)
-    generated['name'] = VSCODE_CONFENTRY_GENERATED
+    generated['name'] = consts.VSCODE_CONFENTRY_GENERATED
 
     # Update includes
     if 'includePath' not in generated:
@@ -238,7 +228,7 @@ def update(tool_conf_file: pathlib.Path, vscode_conf_file_indent_size: int) -> N
     generated['defines'].extend(defines)
 
     # Create and save new c_cpp_properties.json
-    entries = list(filter(lambda entry: entry['name'] != VSCODE_CONFENTRY_GENERATED, vscode_conf['configurations']))
+    entries = list(filter(lambda entry: entry['name'] != consts.VSCODE_CONFENTRY_GENERATED, vscode_conf['configurations']))
     entries.append(generated)
     vscode_conf['configurations'] = entries
     with vscode_conf_file.open('w') as file:
