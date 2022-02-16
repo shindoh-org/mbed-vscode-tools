@@ -3,12 +3,96 @@ import pathlib
 import json
 import subprocess
 import copy
+from typing import Optional
 from . import consts
 
 
 @click.group()
 def cmd():
     pass
+
+
+@cmd.command()
+@click.argument(
+    'out_dir',
+    type=click.Path(
+        file_okay=False, dir_okay=True,
+        resolve_path=True, path_type=pathlib.Path))
+@click.option(
+    '--c-standard', type=click.Choice(['c17', 'c11', 'c99', '89']),
+    default='c17', show_default=True,
+    help='The version of C language standard for vscode intellisense.')
+@click.option(
+    '--cpp-standard', type=click.Choice(['c++20', 'c++17', 'c++14', 'c++11', 'c++03', 'c++98']),
+    default='c++17', show_default=True,
+    help='The version of C++ language standard for vscode intellisense.')
+@click.option(
+    '--compiler-path',
+    type=click.Path(
+        exists=True, file_okay=True, dir_okay=False,
+        resolve_path=True, path_type=pathlib.Path),
+    help='Path to an arm compiler to use. '
+    'If not set, the reuslt of \"$ which arm-none-eabi-gcc\" is used.')
+def generate(
+        out_dir: pathlib.Path,
+        c_standard: str,
+        cpp_standard: str,
+        compiler_path: Optional[pathlib.Path] = None):
+    """Generate a template for your c_cpp_properties.json
+
+    Arguments:
+
+    [OUR_DIR] The output directory where a template for your c_cpp_properties.json
+    will be generated. If the specified directory doesn't exist,
+    it'll be recursively created including sub-directories involved.
+    """
+    # Check out_dir exists
+    if not out_dir.exists():
+        # If it doesn't, create out_dir including subdirectories
+        out_dir.mkdir(parents=True)
+        click.echo(
+            f'-- Could not find the output directory ({out_dir}).\n'
+            '   The directory was newly created including sub-directories.')
+
+    # Find arm compiler path
+    if compiler_path is None:
+        ret = subprocess.run([
+            'which',
+            'arm-none-eabi-gcc'], capture_output=True)
+        if ret.returncode != 0:
+            err = ret.stderr.decode('utf-8')
+            raise Exception(
+                'Could not find arm-none-eabi-gcc in the search paths. '
+                'Make sure that arm-none-eabi-gcc is installed in your machine. '
+                'If not installed, try \"$ sudo apt install gcc-arm-none-eabi\".\n'
+                f'Here\'s the error output from which command >>\n{err}')
+        compiler_path = ret.stdout.decode('utf-8').strip()
+        click.echo(f'-- The default arm compiler (arm-none-eabi-gcc) found at <{compiler_path}>.')
+    else:
+        click.echo(f'-- The specified arm compiler ({compiler_path}) found.')
+
+    # Create c_cpp_properties.json
+    vscode_conf = {
+        'env': {},
+        'configurations': [
+            {
+                'name': 'Mbed',
+                'includePath': [],
+                'defines': [],
+                'compilerPath': str(compiler_path),
+                'cStandard': c_standard,
+                'cppStandard': cpp_standard,
+                'intelliSenseMode': 'gcc-arm'
+            }
+        ],
+        'version': 4}
+    out_path = out_dir / consts.VSCODE_CONFFILE_NAME
+    with (out_path).open('w') as file:
+        json.dump(vscode_conf, file, indent=consts.VSCODE_CONFFILE_INDENT_LENGTH)
+        click.echo(f'-- Saved c_cpp_properties.json as <{out_path}>.')
+
+    # Success
+    click.echo(click.style('[GENERATE SUCCEEDED]', fg='green', bold=True))
 
 
 @cmd.command()
@@ -36,6 +120,8 @@ def configure(
         mbed_toolchain: str, mbed_target: str, vscode_conf_file: pathlib.Path,
         mbed_profile: str, mbed_program_dir: pathlib.Path) -> None:
     """Configure build settings.
+
+    Arguments:
 
     [MBED_TOOLCHAIN] The toolchain you are using to build your mbed application.
     Choose \'GCC_ARM\' or \'ARM\'.
@@ -125,6 +211,8 @@ def configure(
          f'If not specified, it\'s set to ./{consts.TOOL_CONFFILE_NAME}')
 def update(tool_conf_file: pathlib.Path) -> None:
     """Update your c_cpp_properties.json
+
+    Arguments: update command has no positional arguments.
     """
 
     # Check if tool configuration file exists
