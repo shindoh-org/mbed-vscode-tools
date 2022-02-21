@@ -26,18 +26,10 @@ def cmd():
     '--cpp-standard', type=click.Choice(['c++20', 'c++17', 'c++14', 'c++11', 'c++03', 'c++98']),
     default='c++17', show_default=True,
     help='The version of C++ language standard for vscode intellisense.')
-@click.option(
-    '--compiler-path',
-    type=click.Path(
-        exists=True, file_okay=True, dir_okay=False,
-        resolve_path=True, path_type=pathlib.Path),
-    help='Path to an arm compiler to use. '
-    'If not set, the output of \"$ which arm-none-eabi-gcc\" is used.')
 def generate(
         out_dir: pathlib.Path,
         c_standard: str,
-        cpp_standard: str,
-        compiler_path: Optional[pathlib.Path] = None):
+        cpp_standard: str):
     """Generate a template of your c_cpp_properties.json for quick start.
 
     Arguments:
@@ -57,30 +49,11 @@ def generate(
             '   The directory was newly created including sub-directories.')
     click.echo(f'-- The output directory ({out_dir}) found.')
 
-    # Find arm compiler path
-    if compiler_path is None:
-        ret = subprocess.run([
-            'which',
-            'arm-none-eabi-gcc'], capture_output=True)
-        if ret.returncode != 0:
-            err = ret.stderr.decode('utf-8')
-            raise Exception(
-                'Could not find arm-none-eabi-gcc in the search paths. '
-                'Make sure that arm-none-eabi-gcc is installed in your machine. '
-                'If not installed, try \"$ sudo apt install gcc-arm-none-eabi\".\n'
-                f'Here\'s the error output from which command >>\n{err}')
-        compiler_path = ret.stdout.decode('utf-8').strip()
-        compiler_executable = compiler_path.split('/')[-1]
-        click.echo(f'-- The default arm compiler (arm-none-eabi-gcc) found at <{compiler_path}>.')
-    else:
-        click.echo(f'-- The specified arm compiler ({compiler_executable}) found at <{compiler_path}>.')
-
     # Create c_cpp_properties.json
     base_entry = {
         'name': consts.VSCODE_CONFENTRY_BASE,
         'includePath': [],
         'defines': [],
-        'compilerPath': str(compiler_path),
         'cStandard': c_standard,
         'cppStandard': cpp_standard,
         'intelliSenseMode': 'gcc-arm'}
