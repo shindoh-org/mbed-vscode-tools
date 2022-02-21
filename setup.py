@@ -15,7 +15,7 @@ setuptools.setup(
     },
     author='Keisuke Sugiura',
     author_email='std.experimental.optional@gmail.com',
-    description='A command-line to facilitate vscode intellisense  for mbed-os.',
+    description='A command-line tool to help vscode intellisense for mbed-os programs.',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/sterngerlach/mbed-vscode-tools',
@@ -25,4 +25,4 @@ setuptools.setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: POSIX :: Linux'
     ],
-    python_requires='>=3.7')
+    python_requires='>=3.6')
