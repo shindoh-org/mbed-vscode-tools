@@ -99,7 +99,7 @@ def generate(
 def configure(
         mbed_toolchain: str, mbed_target: str, vscode_conf_file: pathlib.Path,
         mbed_profile: str, mbed_program_dir: pathlib.Path) -> None:
-    """Configure your build settings.
+    """Configure the build settings.
 
     Arguments:
 
