@@ -14,7 +14,7 @@ setuptools.setup(
             'mbed-vscode-tools=mbed_vscode_tools.mbed_vscode_tools:main']
     },
     author='Keisuke Sugiura',
-    author_email='std.experimental.optional@gmail.com',
+    author_email='mineto.tsukada@gmail.com',
     description='A command-line tool to help vscode intellisense for mbed-os programs.',
     long_description=long_description,
     long_description_content_type='text/markdown',
