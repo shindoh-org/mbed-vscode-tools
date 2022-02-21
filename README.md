@@ -39,6 +39,14 @@ Run `$ pip uninstall mbed-vscode-tools` for uninstall.
 
 ## Usage
 
+```
+mbed-vscode-tools [OPTIONS] COMMAND [ARGS]
+```
+
+mbed-vscode-tools implements the three commands: (1) `generate`, (2) `configure`, and (3) `update`.
+
+See the documentation below for details of each command.
+
 ### `generate`
 ### `configure`
 ### `update`
