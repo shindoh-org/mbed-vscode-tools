@@ -1,7 +1,7 @@
 
 # VSCode Intellisense For Your Mbed Projects
 
-* This tool (`mbed-vscode-tools`) is made for software engineers want to develop their mbed projects in vscode instead of mbed studio.
+* This tool (`mbed-vscode-tools`) is made for software engineers who want to develop their mbed projects in vscode instead of mbed studio.
 * This tool offers a commandline interface to generate and update your c_cpp_properties.json for correct vscode intellisense.
 * This tool works in conjunction with the official cli tool (`mbed-tools`) provided by the mbed team.
 
