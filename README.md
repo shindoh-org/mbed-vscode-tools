@@ -51,8 +51,8 @@ Commands:
   update     Update your c_cpp_properties.json
 ```
 
-### COMMAND: `generate`
-### COMMAND: `configure`
-### COMMAND: `update`
+### `generate`
+### `configure`
+### `update`
 
 ## Trouble Shooting
