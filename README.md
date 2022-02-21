@@ -1,16 +1,9 @@
 
-# mbed-config-gen
+# VSCode Intellisense For Your Mbed Projects
 
-## Overview
-
-The new Mbed CLI 2 (for Mbed OS 6.5 and newer) does not generate a C/C++ header
-file (`mbed_config.h`) containing project configurations like the previous
-version (Mbed CLI 1) did. This causes some inconvenience when working with Mbed
-projects from external IDEs, i.e., Visual Studio Code, as Intellisense cannot
-find preprocessor definitions for Mbed projects and doesn't work properly.
-This pip package provides a command-line tool to generate a C/C++ header file,
-or to update Visual Studio Code C/C++ properties
-(`.vscode/c_cpp_properties.json`) for Mbed projects.
+* This tool (`mbed-vscode-tools`) is made for software engineers want to develop their mbed projects in vscode instead of mbed studio.
+* This tool offers a commandline interface to generate and update your c_cpp_properties.json for correct vscode intellisense.
+* This tool works in conjunction with the official cli tool (`mbed-tools`) provided by the mbed team.
 
 ## Installation
 
