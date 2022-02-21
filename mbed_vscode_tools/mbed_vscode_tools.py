@@ -76,18 +76,21 @@ def generate(
         click.echo(f'-- The specified arm compiler ({compiler_executable}) found at <{compiler_path}>.')
 
     # Create c_cpp_properties.json
+    base_entry = {
+        'name': consts.VSCODE_CONFENTRY_BASE,
+        'includePath': [],
+        'defines': [],
+        'compilerPath': str(compiler_path),
+        'cStandard': c_standard,
+        'cppStandard': cpp_standard,
+        'intelliSenseMode': 'gcc-arm'}
+    auto_entry = copy.deepcopy(base_entry)
+    auto_entry['name'] = consts.VSCODE_CONFENTRY_AUTO
     vscode_conf = {
         'env': {},
         'configurations': [
-            {
-                'name': 'Mbed',
-                'includePath': [],
-                'defines': [],
-                'compilerPath': str(compiler_path),
-                'cStandard': c_standard,
-                'cppStandard': cpp_standard,
-                'intelliSenseMode': 'gcc-arm'
-            }
+            auto_entry,  # Put auto entry at the first row to make this the default configuration
+            base_entry
         ],
         'version': 4}
     out_path = out_dir / consts.VSCODE_CONFFILE_NAME
@@ -298,26 +301,22 @@ def update(tool_conf_file: pathlib.Path) -> None:
         lambda entry: entry['name'] == consts.VSCODE_CONFENTRY_BASE,
         vscode_conf['configurations']))
 
-    # Create new auto entry
+    # Override base entry
     auto_entry = copy.deepcopy(base_entry)
     auto_entry['name'] = consts.VSCODE_CONFENTRY_AUTO
 
-    # Update includes
+    # Add includes
     if 'includePath' not in auto_entry:
         auto_entry['includePath'] = []
     auto_entry['includePath'].extend(includes)
 
-    # Update defines
+    # Add defines
     if 'defines' not in auto_entry:
         auto_entry['defines'] = []
     auto_entry['defines'].extend(defines)
 
-    # Save c_cpp_properties.json
-    new_entries = list(filter(
-        lambda entry: entry['name'] != consts.VSCODE_CONFENTRY_AUTO,
-        vscode_conf['configurations']))
-    new_entries.append(auto_entry)
-    vscode_conf['configurations'] = new_entries
+    # Save as c_cpp_properties.json
+    vscode_conf['configurations'] = [auto_entry, base_entry]
     with vscode_conf_file.open('w') as file:
         json.dump(vscode_conf, file, indent=consts.VSCODE_CONFFILE_INDENT_LENGTH)
     click.echo(f'-- Updated your c_cpp_properties.json.')
