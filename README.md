@@ -72,7 +72,7 @@ $ mbed-vscode-tools configure MBED_TOOLCHAIN MBED_TARGET VSCODE_CONF_FILE [--mbe
 * `--mbed-program-dir`  
   Path to an mbed program directory. [default: current working directory]
 
-### `configure`
+### `generate`
 
 Generate a template of your c_cpp_properties.json for quick start. 
 
