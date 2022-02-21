@@ -40,12 +40,16 @@ Run `$ pip uninstall mbed-vscode-tools` for uninstall.
 ## Usage
 
 ```
-mbed-vscode-tools [OPTIONS] COMMAND [ARGS]
+Usage: mbed-vscode-tools [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  configure  Configure your build settings.
+  generate   Generate a template of your c_cpp_properties.json for quick...
+  update     Update your c_cpp_properties.json
 ```
-
-mbed-vscode-tools implements the three commands: (1) `generate`, (2) `configure`, and (3) `update`.
-
-See the documentation below for details of each command.
 
 ### `generate`
 ### `configure`
