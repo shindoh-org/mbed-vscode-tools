@@ -8,7 +8,7 @@ The tool offers a commandline interface to generate and update your c_cpp_proper
 
 * This tool works in conjunction with the official cli tool (`mbed-tools`) provided by the mbed team.
 * Currently this tool supports only `arm-none-eabi-gcc` as the arm compiler.
-* We assume that the reader knows how to use mbed-tools; otherwise see [the official docs](https://os.mbed.com/docs/mbed-os/v6.15/build-tools/use.html). 
+* We assume that the reader knows how to use mbed-tools and its workflow; otherwise see [the official docs](https://os.mbed.com/docs/mbed-os/v6.15/build-tools/use.html). 
 
 ## Dependencies
 
@@ -33,8 +33,14 @@ Other softwares:
 $ pip install mbed-vscode-tools
 ```
 
-Run `$ pip uninstall mbed-vscode-tools` to uninstall.
+Run `$ pip uninstall mbed-vscode-tools` for uninstall.
 
 ## Quick Start
 
 ## Usage
+
+### `generate`
+### `configure`
+### `update`
+
+## Trouble Shooting
