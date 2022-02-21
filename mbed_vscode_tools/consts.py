@@ -1,4 +1,3 @@
-import platform
 
 
 TOOL_CONFFILE_NAME = '.mbed-vscode-tools.json'
