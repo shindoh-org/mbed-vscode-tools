@@ -36,6 +36,53 @@ Run `$ pip uninstall mbed-vscode-tools` to uninstall mbed-vscode-tools.
 
 ## Quick Start
 
+### Create c_cpp_properties.json
+
+The 1st step is to create an initial c_cpp_properties.json by `generate` command.
+
+Run the following command in your mbed project directory root.
+
+```bash
+# in <your-mbed-project-dir>/
+$ mbed-vscode-tools generate .vscode/
+```
+
+A template of your c_cpp_projects.json will be created at `<your-mbed-project-dir>/.vscode/c_cpp_properties.json`.
+
+Here's the output:
+
+```json
+{
+    "env": {},
+    "configurations": [
+        {
+            "name": "MbedAuto", <-- Do not edit yoursellf.
+            "includePath": [],
+            "defines": [],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-arm"
+        },
+        {
+            "name": "Mbed", <-- Feel free to edit (MbedAuto inherits this entry).
+            "includePath": [],
+            "defines": [],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-arm"
+        }
+    ],
+    "version": 4
+}
+```
+
+You can see that two config entries \"MbedAuto\" and \"Mbed\" are created. 
+
+* `MbedAuto`  
+  The \"MbedAuto\" entry, which will be automatically updated by `update` command, is for your vscode intellisense.
+  Do not edit this entry yourself
+* `Mbed`
+
 ## Usage
 
 The mbed-vscode-tools offers following three commands: `configure`, `generate`, and `update`.
