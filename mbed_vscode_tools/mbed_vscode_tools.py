@@ -26,10 +26,14 @@ def cmd():
     '--cpp-standard', type=click.Choice(['c++20', 'c++17', 'c++14', 'c++11', 'c++03', 'c++98']),
     default='c++17', show_default=True,
     help='The version of C++ language standard for vscode intellisense.')
+@click.option(
+    '--verbose', is_flag=True,
+    help='Show complete message logs.')
 def generate(
         out_dir: pathlib.Path,
         c_standard: str,
-        cpp_standard: str):
+        cpp_standard: str,
+        verbose: bool):
     """Generate a template of your c_cpp_properties.json for quick start.
 
     Positional Arguments:
@@ -38,16 +42,15 @@ def generate(
     will be generated. If this directory doesn't exist,
     it'll be created including sub-directories.
     """
-    click.echo(click.style('[GENERATE]', bold=True))
-
     # Check out_dir exists
     if not out_dir.exists():
         # If it doesn't, create out_dir including subdirectories
         out_dir.mkdir(parents=True)
         click.echo(
             f'-- The output directory ({out_dir}) does not exist.\n'
-            '   The directory has been created including sub-directories.')
-    click.echo(f'-- The output directory ({out_dir}) found.')
+            f'   The directory has been created including sub-directories.')
+    if verbose:
+        click.echo(f'-- The output directory ({out_dir}) found.')
 
     # Create c_cpp_properties.json
     conf_entry = {
@@ -67,7 +70,7 @@ def generate(
         click.echo(f'-- Saved your c_cpp_properties.json at <{out_path}>.')
 
     # Success
-    click.echo('-- ' + click.style('SUCCEEDED', fg='green', bold=True))
+    click.echo(click.style('[GENERATE DONE]', fg='green', bold=True))
 
 
 @cmd.command()
@@ -91,9 +94,12 @@ def generate(
     default=pathlib.Path().cwd(), show_default=True,
     help='Path to an mbed program directory. '
          'If not specified, it\'s set to your current working directory.')
+@click.option(
+    '--verbose', is_flag=True,
+    help='Show complete message logs.')
 def configure(
         mbed_toolchain: str, mbed_target: str, vscode_conf_file: pathlib.Path,
-        mbed_profile: str, mbed_program_dir: pathlib.Path) -> None:
+        mbed_profile: str, mbed_program_dir: pathlib.Path, verbose: bool) -> None:
     """Configure the build settings.
 
     Positional Arguments:
@@ -108,8 +114,6 @@ def configure(
     Use \"Mbed\" entry, which will be automatically updated by \"configure\" or \"generate\" command, for your vscode intellisense.
     You can generate a template of your c_cpp_properties.json by \"$ mbed-vscode-tools generate\" command for quick start.
     """
-    click.echo(click.style('[CONFIGURE]', bold=True))
-
     cmake_build_dir = \
         mbed_program_dir / \
         consts.CMAKE_ROOTDIR_NAME / \
@@ -121,7 +125,8 @@ def configure(
     # Load c_cpp_properties.json
     with vscode_conf_file.open(mode='r') as file:
         vscode_conf = json.load(file)
-    click.echo(f'-- Your c_cpp_properties.json ({vscode_conf_file}) found and loaded.')
+    if verbose:
+        click.echo(f'-- Your c_cpp_properties.json ({vscode_conf_file}) found and loaded.')
 
     # Check validity of c_cpp_properties.json
     n = len(list(filter(  # "Mbed" entry must be only one
@@ -134,21 +139,24 @@ def configure(
         raise Exception(
             f'More than two \"{consts.VSCODE_CONFENTRY_NAME}\" entries found in <{vscode_conf_file}>. '
             f'Leave one \"{consts.VSCODE_CONFENTRY_NAME}\" entry and remove the others.')
-    click.echo(f'-- No errros found in your c_cpp_properties.json')
+    if verbose:
+        click.echo(f'-- No errros found in your c_cpp_properties.json')
 
     # Check if cmake build directory exists
     if not cmake_build_dir.exists():
         raise Exception(
             f'Could not find the cmake build directory ({cmake_build_dir}). '
             'Run \"$ mbed-tools configure\" first.')
-    click.echo(f'-- The cmake build directory ({cmake_build_dir}) found.')
+    if verbose:
+        click.echo(f'-- The cmake build directory ({cmake_build_dir}) found.')
 
     # Check if cmake configuration file exists
     if not cmake_conf_file.exists():
         raise Exception(
             f'Could not find the cmake config file ({cmake_conf_file}). '
             'Run \"$ mbed-tools configure\" first.')
-    click.echo(f'-- The cmake config file ({cmake_conf_file}) found.')
+    if verbose:
+        click.echo(f'-- The cmake config file ({cmake_conf_file}) found.')
 
     # Generate build.ninja
     ret = subprocess.run([
@@ -161,7 +169,8 @@ def configure(
         raise Exception(
             'Failed to generate build.ninja for some reasons. '
             f'Here\'s the error output from cmake >>\n{err}')
-    click.echo(f'-- Succeeded to generate build.ninja.')
+    if verbose:
+        click.echo(f'-- Succeeded to generate build.ninja.')
 
     # Save config json file
     tool_conf_file = mbed_program_dir / consts.TOOL_CONFFILE_NAME
@@ -179,7 +188,7 @@ def configure(
     click.echo(f'-- Saved your tool config file at <{tool_conf_file}>.')
 
     # Success
-    click.echo('-- ' + click.style('SUCCEEDED', fg='green', bold=True))
+    click.echo(click.style('[CONFIGURE DONE]', fg='green', bold=True))
 
 
 @cmd.command()
@@ -191,13 +200,14 @@ def configure(
     default=(pathlib.Path().cwd() / consts.TOOL_CONFFILE_NAME), show_default=True,
     help=f'Path to the tool config file ({consts.TOOL_CONFFILE_NAME}) generated by configure command. '
          f'If not specified, it\'s set to ./{consts.TOOL_CONFFILE_NAME}')
-def update(tool_conf_file: pathlib.Path) -> None:
+@click.option(
+    '--verbose', is_flag=True,
+    help='Show complete message logs.')
+def update(tool_conf_file: pathlib.Path, verbose: bool) -> None:
     """Update your c_cpp_properties.json
 
     Positional Arguments: "generate" command has no positional arguments.
     """
-    click.echo(click.style('[UPDATE]', bold=True))
-
     # Load tool config file
     if not tool_conf_file.exists():
         raise Exception(
@@ -206,7 +216,8 @@ def update(tool_conf_file: pathlib.Path) -> None:
             'run \"$ mbed-vscode-tools configure\" if you haven\'t done yet.')
     with tool_conf_file.open('r') as file:
         tool_conf = json.load(file)
-    click.echo(f'-- Your tool config file ({tool_conf_file}) found and loaded.')
+    if verbose:
+        click.echo(f'-- Your tool config file ({tool_conf_file}) found and loaded.')
 
     # Check if build.ninja exists
     cmake_build_dir = pathlib.Path(tool_conf['cmake_build_dir'])
@@ -216,7 +227,8 @@ def update(tool_conf_file: pathlib.Path) -> None:
         raise Exception(
             f'Could not find build.ninja at <{ninja_build_file}>. '
             'Run \"$ mbed-vscode-tools configure\" first.')
-    click.echo(f'-- Found build.ninja at <{ninja_build_file}>.')
+    if verbose:
+        click.echo(f'-- Found build.ninja at <{ninja_build_file}>.')
 
     # Parse build.ninja
     defines, includes = [], []
@@ -249,7 +261,9 @@ def update(tool_conf_file: pathlib.Path) -> None:
     # Manually add one include
     # TODO: Should parse this automatically as well
     includes.append(str(cmake_build_dir / '_deps' / 'greentea-client-src' / 'include'))
-    click.echo(f'-- Detected {len(includes)} include paths & {len(defines)} defines in your build.ninja.')
+    if verbose:
+        click.echo('-- ' + click.style(f'{len(includes)}', fg='white', bold=True) + ' include paths parsed.')
+        click.echo('-- ' + click.style(f'{len(defines)}', fg='white', bold=True) + ' defines parsed.')
 
     # Load c_cpp_properties.json
     if not vscode_conf_file.exists():
@@ -259,7 +273,8 @@ def update(tool_conf_file: pathlib.Path) -> None:
             'Run \"$ mbed-vscode-tools configure\" again to fix this problem.')
     with vscode_conf_file.open(mode='r') as file:
         vscode_conf = json.load(file)
-    click.echo(f'-- Your c_cpp_properties ({vscode_conf_file}) found and loaded.')
+    if verbose:
+        click.echo(f'-- Your c_cpp_properties ({vscode_conf_file}) found and loaded.')
 
     # Get config entry
     conf_entry = next(filter(
@@ -278,7 +293,7 @@ def update(tool_conf_file: pathlib.Path) -> None:
     click.echo(f'-- Updated your c_cpp_properties.json.')
 
     # Success
-    click.echo('-- ' + click.style('SUCCEEDED', fg='green', bold=True))
+    click.echo(click.style('[UPDATE DONE]', fg='green', bold=True))
 
 
 def main():
