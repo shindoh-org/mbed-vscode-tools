@@ -2,9 +2,60 @@ import click
 import pathlib
 import json
 import subprocess
-import copy
-from typing import Optional
 from . import consts
+from typing import Tuple, List
+
+
+def parse_includes_and_defines(ninja_build_file: pathlib.Path) -> Tuple[List[str], List[str]]:
+    """Parse include paths and defines from build.ninja file."""
+    defines, includes = [], []
+    with ninja_build_file.open(mode='r') as file:
+        lines = file.readlines()
+        defines_done = False
+        includes_done = False
+        for line in lines:
+            line = line.strip()
+
+            # Parse defines
+            if not defines_done and line.startswith('DEFINES = '):
+                for define in line.split('-D')[1:]:  # Remove 'DEFINES = '
+                    define = define.strip()
+                    if define not in defines:
+                        defines.append(define)
+                defines_done = True
+
+            # Parse includes
+            if not includes_done and line.startswith('INCLUDES = '):
+                for include in line.split('-I')[1:]:  # Remove 'INCLUDES = '
+                    include = include.strip()[1:-1]  # Remove "" both side
+                    if include not in includes:
+                        includes.append(include)
+                includes_done = True
+
+            # Termination
+            if defines_done and includes_done:
+                break
+    # Manually add one include
+    # TODO: Should parse this automatically as well
+    includes.append(str(ninja_build_file.parent / '_deps' / 'greentea-client-src' / 'include'))
+    return (includes, defines)
+
+
+def validate_vscode_conf_file(vscode_conf_file: pathlib.Path) -> dict:
+    """Validate c_cpp_properties.json an return it as a dict."""
+    with vscode_conf_file.open(mode='r') as file:
+        vscode_conf = json.load(file)
+    n = len(list(filter(
+        lambda entry: entry['name'] == consts.VSCODE_CONFENTRY_NAME,
+        vscode_conf['configurations'])))
+    if n < 1:  # No "Mbed" entry
+        raise Exception(
+            f'Could not find \"{consts.VSCODE_CONFENTRY_NAME}\" entry in your c_cpp_properties.json ({vscode_conf_file}).')
+    elif n > 1:  # Prohibit more than two "Mbed" entries
+        raise Exception(
+            f'More than two \"{consts.VSCODE_CONFENTRY_NAME}\" entries found in <{vscode_conf_file}>. '
+            f'Leave one \"{consts.VSCODE_CONFENTRY_NAME}\" entry and remove the others.')
+    return vscode_conf
 
 
 @click.group()
@@ -50,7 +101,7 @@ def generate(
             f'-- The output directory ({out_dir}) does not exist.\n'
             f'   The directory has been created including sub-directories.')
     if verbose:
-        click.echo(f'-- The output directory ({out_dir}) found.')
+        click.echo(f'-- The output directory ({out_dir}) exists.')
 
     # Create c_cpp_properties.json
     conf_entry = {
@@ -67,7 +118,7 @@ def generate(
     out_path = out_dir / consts.VSCODE_CONFFILE_NAME
     with (out_path).open('w') as file:
         json.dump(vscode_conf, file, indent=consts.VSCODE_CONFFILE_INDENT_LENGTH)
-        click.echo(f'-- Saved your c_cpp_properties.json at <{out_path}>.')
+        click.echo(f'-- Saved your c_cpp_properties.json as <{out_path}>.')
 
     # Success
     click.echo(click.style('[GENERATE DONE]', fg='green', bold=True))
@@ -129,16 +180,7 @@ def configure(
         click.echo(f'-- Your c_cpp_properties.json ({vscode_conf_file}) found and loaded.')
 
     # Check validity of c_cpp_properties.json
-    n = len(list(filter(  # "Mbed" entry must be only one
-        lambda entry: entry['name'] == consts.VSCODE_CONFENTRY_NAME,
-        vscode_conf['configurations'])))
-    if n < 1:  # No "Mbed" entry
-        raise Exception(
-            f'Could not find \"{consts.VSCODE_CONFENTRY_NAME}\" entry in your c_cpp_properties.json ({vscode_conf_file}).')
-    elif n > 1:  # Duplication
-        raise Exception(
-            f'More than two \"{consts.VSCODE_CONFENTRY_NAME}\" entries found in <{vscode_conf_file}>. '
-            f'Leave one \"{consts.VSCODE_CONFENTRY_NAME}\" entry and remove the others.')
+    vscode_conf = validate_vscode_conf_file(vscode_conf_file)
     if verbose:
         click.echo(f'-- No errros found in your c_cpp_properties.json')
 
@@ -172,9 +214,25 @@ def configure(
     if verbose:
         click.echo(f'-- Succeeded to generate build.ninja.')
 
+    # Get "Mbed" entry
+    conf_entry = next(filter(
+        lambda entry: entry['name'] == consts.VSCODE_CONFENTRY_NAME,
+        vscode_conf['configurations']))
+
+    # Update "Mbed" entry
+    ninja_build_file = cmake_build_dir / consts.NINJA_BUILDFILE_NAME
+    includes, defines = parse_includes_and_defines(ninja_build_file)
+    conf_entry['includePath'] = includes
+    conf_entry['defines'] = defines
+
+    # Save c_cpp_properties.json
+    with vscode_conf_file.open('w') as file:
+        json.dump(vscode_conf, file, indent=consts.VSCODE_CONFFILE_INDENT_LENGTH)
+    click.echo(f'-- Updated your c_cpp_properties.json.')
+
     # Save config json file
     tool_conf_file = mbed_program_dir / consts.TOOL_CONFFILE_NAME
-    conf = {
+    tool_conf = {
         'mbed_toolchain': mbed_toolchain,
         'mbed_target': mbed_target,
         'mbed_profile': mbed_profile,
@@ -182,10 +240,10 @@ def configure(
         'cmake_build_dir': str(cmake_build_dir),
         'cmake_conf_file': str(cmake_conf_file),
         'vscode_conf_file': str(vscode_conf_file),
-        'ninja_build_file': str(cmake_build_dir / consts.NINJA_BUILDFILE_NAME)}
+        'ninja_build_file': str(ninja_build_file)}
     with tool_conf_file.open('w') as file:
-        json.dump(conf, file, indent=consts.TOOL_CONFFILE_INDENT_LENGTH)
-    click.echo(f'-- Saved your tool config file at <{tool_conf_file}>.')
+        json.dump(tool_conf, file, indent=consts.TOOL_CONFFILE_INDENT_LENGTH)
+    click.echo(f'-- Saved your tool config file as <{tool_conf_file}>.')
 
     # Success
     click.echo(click.style('[CONFIGURE DONE]', fg='green', bold=True))
@@ -220,7 +278,6 @@ def update(tool_conf_file: pathlib.Path, verbose: bool) -> None:
         click.echo(f'-- Your tool config file ({tool_conf_file}) found and loaded.')
 
     # Check if build.ninja exists
-    cmake_build_dir = pathlib.Path(tool_conf['cmake_build_dir'])
     vscode_conf_file = pathlib.Path(tool_conf['vscode_conf_file'])
     ninja_build_file = pathlib.Path(tool_conf['ninja_build_file'])
     if not ninja_build_file.exists():
@@ -231,36 +288,7 @@ def update(tool_conf_file: pathlib.Path, verbose: bool) -> None:
         click.echo(f'-- Found build.ninja at <{ninja_build_file}>.')
 
     # Parse build.ninja
-    defines, includes = [], []
-    with ninja_build_file.open(mode='r') as file:
-        lines = file.readlines()
-        defines_done = False
-        includes_done = False
-        for line in lines:
-            line = line.strip()
-
-            # Parse defines
-            if not defines_done and line.startswith('DEFINES = '):
-                for define in line.split('-D')[1:]:  # Remove 'DEFINES = '
-                    define = define.strip()
-                    if define not in defines:
-                        defines.append(define)
-                defines_done = True
-
-            # Parse includes
-            if not includes_done and line.startswith('INCLUDES = '):
-                for include in line.split('-I')[1:]:  # Remove 'INCLUDES = '
-                    include = include.strip()[1:-1]  # Remove "" both side
-                    if include not in includes:
-                        includes.append(include)
-                includes_done = True
-
-            # Termination
-            if defines_done and includes_done:
-                break
-    # Manually add one include
-    # TODO: Should parse this automatically as well
-    includes.append(str(cmake_build_dir / '_deps' / 'greentea-client-src' / 'include'))
+    includes, defines = parse_includes_and_defines(ninja_build_file)
     if verbose:
         click.echo('-- ' + click.style(f'{len(includes)}', fg='white', bold=True) + ' include paths parsed.')
         click.echo('-- ' + click.style(f'{len(defines)}', fg='white', bold=True) + ' defines parsed.')
@@ -276,18 +304,16 @@ def update(tool_conf_file: pathlib.Path, verbose: bool) -> None:
     if verbose:
         click.echo(f'-- Your c_cpp_properties ({vscode_conf_file}) found and loaded.')
 
-    # Get config entry
+    # Get "Mbed" entry
     conf_entry = next(filter(
         lambda entry: entry['name'] == consts.VSCODE_CONFENTRY_NAME,
         vscode_conf['configurations']))
 
-    # Update includes
+    # Update "Mbed" entry
     conf_entry['includePath'] = includes
-
-    # Update defines
     conf_entry['defines'] = defines
 
-    # Save as c_cpp_properties.json
+    # Save c_cpp_properties.json
     with vscode_conf_file.open('w') as file:
         json.dump(vscode_conf, file, indent=consts.VSCODE_CONFFILE_INDENT_LENGTH)
     click.echo(f'-- Updated your c_cpp_properties.json.')
