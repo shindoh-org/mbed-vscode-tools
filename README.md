@@ -7,7 +7,7 @@ The tool offers a commandline interface to generate and update your c_cpp_proper
 ## Notes
 
 * This tool works in conjunction with the official cli tool (`mbed-tools`) provided by the mbed team.
-* We assume that the reader knows how to use mbed-tools and its workflow; otherwise see [the official docs](https://os.mbed.com/docs/mbed-os/v6.15/build-tools/use.html). 
+* We assume that the users know how to use mbed-tools and its workflow. Otherwise see [the official docs](https://os.mbed.com/docs/mbed-os/v6.15/build-tools/use.html). 
 
 ## Dependencies
 
