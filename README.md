@@ -59,7 +59,7 @@ Create your c_cpp_properties.json **that has \"Mbed\" configuration entry** like
 }
 ```
 
-### Configure build settings & Update your c_cpp_properties.json
+### Configure build settings & Update c_cpp_properties.json
 
 Make sure that you've run `$ mbed-tools configure` before reading further.
 
@@ -88,7 +88,7 @@ $ mbed-vscode-tools GCC_ARM DISCO_L072CZ_LRWAN1 .vscode/c_cpp_properties.json
 Make sure that `includePath` and `defines` fields of your c_cpp_properties.json is automatically completed
 and your vscode intellisense works fine.
 
-### (Optional) Update your c_cpp_properties.json
+### (Optional) Update c_cpp_properties.json
 
 Once you configure your build settings by `$ mbed-vscode-tools configure`,
 you can quickly update c_cpp_properties.json by running below:
