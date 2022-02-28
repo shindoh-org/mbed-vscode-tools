@@ -13,7 +13,7 @@ The tool offers a commandline interface to generate and update your c_cpp_proper
 
 Python interpreter:
 
-* python >= 3.6.0 (f strings are used in the source)
+* python >= 3.6.0 (f strings are used in our code)
 
 Python packages:
 
@@ -34,58 +34,74 @@ $ pip install mbed-vscode-tools
 
 Run `$ pip uninstall mbed-vscode-tools` to uninstall mbed-vscode-tools.
 
-## Quick Start
+## Tutorial
 
 ### Create c_cpp_properties.json
 
-The 1st step to do is generating a template of your c_cpp_properties.json by running `generate` command in your mbed program directory root as below:
-
-```bash
-# In <your-mbed-program-directory-root>
-$ mbed-vscode-tools generate .vscode/
-```
-
-Output:
+Create your c_cpp_properties.json **that has \"Mbed\" configuration entry** like below:
 
 ```json
-// .vscode/c_cpp_properties.json
 {
     "env": {},
     "configurations": [
         {
-            // "MbedAuto" entry is to be autocompleted by "configure" or "update" commands.
-            // Do not edit this entry yourself.
-            "name": "MbedAuto",
-            "includePath": [],
-            "defines": [],
-            "cStandard": "c17",
-            "cppStandard": "c++17",
-            "intelliSenseMode": "gcc-arm"
-        },
-        {
-            // "Mbed" entry will be inherited by "MbedAuto".
-            // Customize here as you like.
-            // Basically you don't have to customize as long as 
+            // "Mbed" entry will be automatically managed and updated by this tool.
             "name": "Mbed",
-            "includePath": [],
-            "defines": [],
-            "cStandard": "c17",
-            "cppStandard": "c++17",
-            "intelliSenseMode": "gcc-arm"
+            "compilerPath": "/usr/bin/arm-none-eabi-gcc",  // Path to an arm-compiler executable to use
+            "includePath": [],       // Leave empty
+            "defines": [],           // Leave empty
+            "cStandard": "c17",      // Set your favorite
+            "cppStandard": "c++17",  // Set your favorite
+            "intelliSenseMode": "gcc-arm"  // Depends on your compiler
         }
     ],
     "version": 4
 }
 ```
 
-You can see that two config entries \"MbedAuto\" and \"Mbed\" are created. 
+### Configure build settings & Update your c_cpp_properties.json
 
-* `MbedAuto`  
-  The \"MbedAuto\" entry, which will be automatically updated by `update` command, is for your vscode intellisense.
-  Do not edit this entry yourself
-* `Mbed`
+Make sure that you've run `$ mbed-tools configure` before reading further.
 
-## Usage
+Then run `$ mbed-vscode-tools configure` to tell the build settings for this tool as follows:
+
+```bash
+$ mbed-vscode-tools MBED_TOOLCHAIN MBED_TARGET VSCODE_CONF_FILE
+```
+
+* `MBED_TOOLCHAIN`  
+  Choose `GCC_ARM` or `ARM` depending on your compiler.
+* `MBED_TARGET`  
+  Specify an mbed-enabled board identifier.  
+  You can find it by connecting your board via usb and run `$ mbed-tools detect`.
+* `VSCODE_CONF_FILE`  
+  Path to your c_cpp_properties.json.
+
+**`MBED_TOOLCHAIN` and `MBED_TARGET` must be the same with `$ mbed-tools configure` arguments.**
+
+Example: If you use gnu arm compiler and DISCO-L072CZ-LRWAN1 development board, and if your c_cpp_properties.json located at `./.vscode/c_cpp_properties.json`, run the following command:
+
+```bash
+$ mbed-vscode-tools GCC_ARM DISCO_L072CZ_LRWAN1 .vscode/c_cpp_properties.json
+```
+
+Make sure that `includePath` and `defines` fields of your c_cpp_properties.json is automatically completed
+and your vscode intellisense works fine.
+
+### (Optional) Update your c_cpp_properties.json
+
+Once you configure your build settings by `$ mbed-vscode-tools configure`,
+you can quickly update c_cpp_properties.json by running below:
+
+```bash
+$ mbed-vscode-tools update
+```
+
+This command was implemented just for quick workflow (you can use only `$ mbed-vscode-tools configure` to update your c_cpp_properties.json).
+
+## Workflow
+
+## Documentation
 
 The mbed-vscode-tools offers following three commands: `configure`, `generate`, and `update`.
 
@@ -120,28 +136,6 @@ $ mbed-vscode-tools configure MBED_TOOLCHAIN MBED_TARGET VSCODE_CONF_FILE [--mbe
   Select a build profile from \"debug\", \"develop\", and \"release\". See [here](https://os.mbed.com/docs/mbed-os/v6.15/program-setup/build-profiles-and-rules.html) for the specification of each profile. [default: develop]
 * `--mbed-program-dir`  
   Path to an mbed program directory. [default: current working directory]
-
-### `generate`
-
-Generate a template of your c_cpp_properties.json for quick start.
-
-```
-$ mbed-vscode-tools generate OUT_DIR [--c-standard [c17|c11|c99|c89]] [--cpp-standard [c++20|c++17|c++14|c++11|c++03|c++98]]
-```
-
-**Positional Arguments**
-
-* `OUT_DIR`  
-  The output directory where a template of your
-  c_cpp_properties.json will be generated. If the specified directory doesn't
-  exist, it'll be created including sub-directories involved.
-
-**Options**
-
-* `--c-standard`  
-  The version of C language standard for vscode intellisense. [default: c17]
-* `--cpp-standard`  
-  The version of C++ language standard for vscode intellisense. [default: c++17]
 
 ### `update`
 
