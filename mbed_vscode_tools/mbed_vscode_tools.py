@@ -41,87 +41,28 @@ def parse_includes_and_defines(ninja_build_file: pathlib.Path) -> Tuple[List[str
     return (includes, defines)
 
 
-def validate_vscode_conf_file(vscode_conf_file: pathlib.Path) -> dict:
+def validate_vscode_conf_file(
+        vscode_conf_file: pathlib.Path,
+        vscode_conf_entry: str) -> dict:
     """Validate c_cpp_properties.json an return it as a dict."""
     with vscode_conf_file.open(mode='r') as file:
         vscode_conf = json.load(file)
     n = len(list(filter(
-        lambda entry: entry['name'] == consts.VSCODE_CONFENTRY_NAME,
+        lambda entry: entry['name'] == vscode_conf_entry,
         vscode_conf['configurations'])))
     if n < 1:  # No "Mbed" entry
         raise Exception(
-            f'Could not find \"{consts.VSCODE_CONFENTRY_NAME}\" entry in your c_cpp_properties.json ({vscode_conf_file}).')
+            f'Could not find \"{vscode_conf_entry}\" config entry in your c_cpp_properties.json ({vscode_conf_file}).')
     elif n > 1:  # Prohibit more than two "Mbed" entries
         raise Exception(
-            f'More than two \"{consts.VSCODE_CONFENTRY_NAME}\" entries found in <{vscode_conf_file}>. '
-            f'Leave one \"{consts.VSCODE_CONFENTRY_NAME}\" entry and remove the others.')
+            f'More than two \"{vscode_conf_entry}\" config entries found in <{vscode_conf_file}>. '
+            f'Leave one \"{vscode_conf_entry}\" entry and remove the others.')
     return vscode_conf
 
 
 @click.group()
 def cmd():
     pass
-
-
-@cmd.command()
-@click.argument(
-    'out_dir',
-    type=click.Path(
-        file_okay=False, dir_okay=True,
-        resolve_path=True, path_type=pathlib.Path))
-@click.option(
-    '--c-standard', type=click.Choice(['c17', 'c11', 'c99', '89']),
-    default='c17', show_default=True,
-    help='The version of C language standard for vscode intellisense.')
-@click.option(
-    '--cpp-standard', type=click.Choice(['c++20', 'c++17', 'c++14', 'c++11', 'c++03', 'c++98']),
-    default='c++17', show_default=True,
-    help='The version of C++ language standard for vscode intellisense.')
-@click.option(
-    '--verbose', is_flag=True,
-    help='Show complete message logs.')
-def generate(
-        out_dir: pathlib.Path,
-        c_standard: str,
-        cpp_standard: str,
-        verbose: bool):
-    """Generate a template of your c_cpp_properties.json for quick start.
-
-    Positional Arguments:
-
-    [OUR_DIR] The output directory where a template of your c_cpp_properties.json
-    will be generated. If this directory doesn't exist,
-    it'll be created including sub-directories.
-    """
-    # Check out_dir exists
-    if not out_dir.exists():
-        # If it doesn't, create out_dir including subdirectories
-        out_dir.mkdir(parents=True)
-        click.echo(
-            f'-- The output directory ({out_dir}) does not exist.\n'
-            f'   The directory has been created including sub-directories.')
-    if verbose:
-        click.echo(f'-- The output directory ({out_dir}) exists.')
-
-    # Create c_cpp_properties.json
-    conf_entry = {
-        'name': consts.VSCODE_CONFENTRY_NAME,
-        'includePath': [],
-        'defines': [],
-        'cStandard': c_standard,
-        'cppStandard': cpp_standard,
-        'intelliSenseMode': 'gcc-arm'}
-    vscode_conf = {
-        'env': {},
-        'configurations': [conf_entry],
-        'version': 4}
-    out_path = out_dir / consts.VSCODE_CONFFILE_NAME
-    with (out_path).open('w') as file:
-        json.dump(vscode_conf, file, indent=consts.VSCODE_CONFFILE_INDENT_LENGTH)
-        click.echo(f'-- Saved your c_cpp_properties.json as <{out_path}>.')
-
-    # Success
-    click.echo(click.style('[GENERATE DONE]', fg='green', bold=True))
 
 
 @cmd.command()
@@ -143,17 +84,19 @@ def generate(
         exists=True, file_okay=False, dir_okay=True,
         resolve_path=True, path_type=pathlib.Path),
     default=pathlib.Path().cwd(), show_default=True,
-    help='Path to an mbed program directory. '
+    help='Path to your mbed program directory. '
          'If not specified, it\'s set to your current working directory.')
+@click.option(
+    '--vscode-conf-entry',
+    type=str, default='Mbed', show_default=True,
+    help='Specify the target config entry of your c_cpp_properties.json.')
 @click.option(
     '--verbose', is_flag=True,
     help='Show complete message logs.')
 def configure(
         mbed_toolchain: str, mbed_target: str, vscode_conf_file: pathlib.Path,
-        mbed_profile: str, mbed_program_dir: pathlib.Path, verbose: bool) -> None:
-    """Configure the build settings.
-
-    Positional Arguments:
+        mbed_profile: str, mbed_program_dir: pathlib.Path, vscode_conf_entry: str, verbose: bool) -> None:
+    """Configure and save the build settings.
 
     [MBED_TOOLCHAIN] The toolchain you are using to build your mbed application.
     Choose \"GCC_ARM\" or \"ARM\".
@@ -161,9 +104,8 @@ def configure(
     [MBED_TARGET] A build target for an mbed-enabled device (e.g. DISCO_L072CZ_LRWAN1).
 
     [VSCODE_CONF_FILE] Path to your c_cpp_properties.json.
-    Make sure that your c_cpp_properties.json has an \"Mbed\" entry in \"configurations\" field.
-    Use \"Mbed\" entry, which will be automatically updated by \"configure\" or \"generate\" command, for your vscode intellisense.
-    You can generate a template of your c_cpp_properties.json by \"$ mbed-vscode-tools generate\" command for quick start.
+    Make sure that your c_cpp_properties.json has an config entry whose name == --vscode-conf-entry in \"configurations\" field.
+    The entry is managed and updated by this tool for correct vscode intellisense.
     """
     cmake_build_dir = \
         mbed_program_dir / \
@@ -180,7 +122,7 @@ def configure(
         click.echo(f'-- Your c_cpp_properties.json ({vscode_conf_file}) found and loaded.')
 
     # Check validity of c_cpp_properties.json
-    vscode_conf = validate_vscode_conf_file(vscode_conf_file)
+    vscode_conf = validate_vscode_conf_file(vscode_conf_file, vscode_conf_entry)
     if verbose:
         click.echo(f'-- No errros found in your c_cpp_properties.json')
 
@@ -216,7 +158,7 @@ def configure(
 
     # Get "Mbed" entry
     conf_entry = next(filter(
-        lambda entry: entry['name'] == consts.VSCODE_CONFENTRY_NAME,
+        lambda entry: entry['name'] == vscode_conf_entry,
         vscode_conf['configurations']))
 
     # Update "Mbed" entry
@@ -232,7 +174,7 @@ def configure(
 
     # Save config json file
     tool_conf_file = mbed_program_dir / consts.TOOL_CONFFILE_NAME
-    tool_conf = {
+    tool_conf = {  # TODO: convert to relative paths
         'mbed_toolchain': mbed_toolchain,
         'mbed_target': mbed_target,
         'mbed_profile': mbed_profile,
@@ -240,6 +182,7 @@ def configure(
         'cmake_build_dir': str(cmake_build_dir),
         'cmake_conf_file': str(cmake_conf_file),
         'vscode_conf_file': str(vscode_conf_file),
+        'vscode_conf_entry': vscode_conf_entry,
         'ninja_build_file': str(ninja_build_file)}
     with tool_conf_file.open('w') as file:
         json.dump(tool_conf, file, indent=consts.TOOL_CONFFILE_INDENT_LENGTH)
@@ -262,10 +205,8 @@ def configure(
     '--verbose', is_flag=True,
     help='Show complete message logs.')
 def update(tool_conf_file: pathlib.Path, verbose: bool) -> None:
-    """Update your c_cpp_properties.json
+    """Update your c_cpp_properties.json"""
 
-    Positional Arguments: "generate" command has no positional arguments.
-    """
     # Load tool config file
     if not tool_conf_file.exists():
         raise Exception(
@@ -304,12 +245,13 @@ def update(tool_conf_file: pathlib.Path, verbose: bool) -> None:
     if verbose:
         click.echo(f'-- Your c_cpp_properties ({vscode_conf_file}) found and loaded.')
 
-    # Get "Mbed" entry
+    # Get target config entry
+    vscode_conf_entry = tool_conf['vscode_conf_entry']
     conf_entry = next(filter(
-        lambda entry: entry['name'] == consts.VSCODE_CONFENTRY_NAME,
+        lambda entry: entry['name'] == vscode_conf_entry,
         vscode_conf['configurations']))
 
-    # Update "Mbed" entry
+    # Update target config entry
     conf_entry['includePath'] = includes
     conf_entry['defines'] = defines
 
