@@ -105,19 +105,24 @@ Update your c_cpp_properties.json.
 $ mbed-vscode-tools update MBED_BUILD_DIR VSCODE_CONF_FILE [--mbed-program-dir str] [--vscode-conf-entry str] [--verbose store_true] [--help store_true]
 ```
 
-* `MBED_BUILD_DIR` (required)  
+**Positional arguments**:
+
+* `MBED_BUILD_DIR`  
   The build directory created by the configure command of mbed-tools. If MBED_PROGRAM_DIR is the mbed program directory root,
   MBED_TOOLCHAIN is the mbed toolchain, MBED_PROFILE is the mbed build profile, and MBED_TARGET is your mbed-enabled board identifier,
-  then the directory will be created as MBED_PROGRAM_DIR/cmake_build/MBED_TARGET/MBED_PROFILE/MBED_TOOLCHAIN by
+  then the directory will be created as {MBED_PROGRAM_DIR}/cmake_build/{MBED_TARGET}/{MBED_PROFILE}/{MBED_TOOLCHAIN} by
   `$ mbed-tools configure -t MBED_TOOLCHAIN -m MBED_TARGET -b MBED_PROFILE -p MBED_PROGRAM_DIR`.
-* `VSCODE_CONF_FILE` (required)  
+* `VSCODE_CONF_FILE`  
   Path to your c_cpp_properties.json.
-* `--mbed-program-dir` (optional)  
+
+**Options**
+
+* `--mbed-program-dir`  
   Path to the mbed program directory root. If not specified, it\'s set to your current working directory.
-* `--vscode-conf-entry` (optional)  
+* `--vscode-conf-entry`  
   Specify the target config entry of your c_cpp_properties.json.
   The default parameter is \"Mbed\".
-* `--verbose` (optional)  
+* `--verbose`  
   Show complete message logs.
-* `--help` (optional)  
+* `--help`  
   Show help messages.
