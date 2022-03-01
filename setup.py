@@ -3,7 +3,7 @@ import os
 
 curdir = os.path.abspath(os.path.dirname(__file__))
 
-with open(curdir.join('README.md'), 'r', encoding='utf-8') as f:
+with open(os.path.join(curdir, 'README.md'), 'r', encoding='utf-8') as f:
     long_description = f.read()
 
 
