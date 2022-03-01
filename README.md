@@ -70,7 +70,7 @@ $ mbed-tools configure -t MBED_TOOLCHAIN -m MBED_TARGET -b MBED_PROFILE
 ```
 
 * `MBED_TOOLCHAIN` (required)  
-  Set \"GCC_ARM\" if you use a free gnu arm compiler. If use a paid arm c++ compiler, set \"ARM\" instead.
+  Set \"GCC_ARM\" if you like to use a gnu arm compiler. If use a paid official arm c/c++ compiler, set \"ARM\" instead.
 * `MBED_TARGET` (required)  
   Set your mbed-enabled board identifier. You can easily find it by connecting your board via usb and run `$ mbed-tools detect`.  
   The \"Build target(s)\" field is what you are looking for.
@@ -90,8 +90,7 @@ $ mbed-vscode-tools update ./cmake_build/{MBED_TARGET}/{MBED_PROFILE}/{MBED_TOOL
 * `VSCODE_CONF_FILE` (required)  
   Path to your c_cpp_properties.json.
 
-If everything goes well, `includePath` and `defines` fields of your c_cpp_properties.json are automatically updated
-and your vscode intellisense works fine.
+If everything goes well, `includePath` and `defines` fields of your c_cpp_properties.json are automatically updated and your vscode intellisense works fine.
 
 **Run this command right after every execution of the configure command of mbed-tools.**
 
