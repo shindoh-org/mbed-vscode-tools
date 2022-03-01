@@ -1,13 +1,16 @@
 import setuptools
+import os
 
+curdir = os.path.abspath(os.path.dirname(__file__))
 
-with open('README.md', 'r', encoding='utf-8') as f:
+with open(curdir.join('README.md'), 'r', encoding='utf-8') as f:
     long_description = f.read()
 
 
 setuptools.setup(
     name='mbed-vscode-tools',
-    version='0.0.1',
+    version='0.1.0',
+    license='MIT',
     install_requires=['click>=8.0.0'],
     entry_points={
         'console_scripts': [
@@ -15,7 +18,7 @@ setuptools.setup(
     },
     author='Keisuke Sugiura',
     author_email='mineto.tsukada@gmail.com',
-    description='A command-line tool to help vscode intellisense for mbed-os programs.',
+    description='A command-line tool to help vscode intellisense for your mbed-os projects.',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/sterngerlach/mbed-vscode-tools',
