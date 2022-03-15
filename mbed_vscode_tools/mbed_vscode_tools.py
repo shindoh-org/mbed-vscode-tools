@@ -74,17 +74,17 @@ def cmd():
     'mbed-build-dir',
     type=click.Path(
         exists=True, file_okay=False, dir_okay=True,
-        resolve_path=True, path_type=pathlib.Path))
+        resolve_path=True))
 @click.argument(
     'vscode-conf-file',
     type=click.Path(
         exists=True, file_okay=True, dir_okay=False,
-        resolve_path=True, path_type=pathlib.Path))
+        resolve_path=True))
 @click.option(
     '--mbed-program-dir',
     type=click.Path(
         exists=True, file_okay=False, dir_okay=True,
-        resolve_path=True, path_type=pathlib.Path),
+        resolve_path=True),
     default=pathlib.Path().cwd(), show_default=True,
     help='Path to the mbed program directory root. '
          'If not specified, it\'s set to your current working directory.')
@@ -96,8 +96,11 @@ def cmd():
     '--verbose', is_flag=True,
     help='Show complete message logs.')
 def update(
-        mbed_build_dir: pathlib.Path, vscode_conf_file: pathlib.Path,
-        mbed_program_dir: pathlib.Path, vscode_conf_entry: str, verbose: bool) -> None:
+        mbed_build_dir: str,
+        vscode_conf_file: str,
+        mbed_program_dir: str,
+        vscode_conf_entry: str,
+        verbose: bool) -> None:
     """Update your c_cpp_properties.json.
 
     [MBED_BUILD_DIR] The build directory created by \"$ mbed-tools configure -t MBED_TOOLCHAIN -m MBED_TARGET -b MBED_PROFILE\".
@@ -107,6 +110,9 @@ def update(
     Make sure that your c_cpp_properties.json has an config entry whose name == --vscode-conf-entry in \"configurations\" field.
     The entry is managed and updated by this tool for correct vscode intellisense.
     """
+    mbed_build_dir: pathlib.Path = pathlib.Path(mbed_build_dir)
+    vscode_conf_file: pathlib.Path = pathlib.Path(vscode_conf_file)
+    mbed_program_dir: pathlib.Path = pathlib.Path(mbed_program_dir)
 
     # Check validity of c_cpp_properties.json
     vscode_conf = validate_vscode_conf_file(vscode_conf_file, vscode_conf_entry)
