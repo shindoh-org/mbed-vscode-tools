@@ -9,9 +9,9 @@ with open(os.path.join(curdir, 'README.md'), 'r', encoding='utf-8') as f:
 
 setuptools.setup(
     name='mbed-vscode-tools',
-    version='0.1.0',
+    version='0.1.1',
     license='MIT',
-    install_requires=['click>=8.0.0'],
+    install_requires=['click>=7.0.0, <8.0.0'],
     entry_points={
         'console_scripts': [
             'mbed-vscode-tools=mbed_vscode_tools.mbed_vscode_tools:main']
