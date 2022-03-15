@@ -27,7 +27,7 @@ def parse_includes_and_defines(ninja_build_file: pathlib.Path) -> Tuple[List[str
             # Parse includes
             if not includes_done and line.startswith('INCLUDES = '):
                 for include in line.split('-I')[1:]:  # Remove 'INCLUDES = '
-                    include = include.strip()[1:-1]  # Remove "" both side
+                    include = include.strip()
                     if include not in includes:
                         includes.append(include)
                 includes_done = True
