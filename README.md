@@ -17,7 +17,7 @@ Python interpreter:
 
 Python packages:
 
-* click >= 8.0.0
+* 8.0.0 > click >= 7.0.0 (the latest mbed-tools requires click 7.x)
 
 Other softwares:
 
