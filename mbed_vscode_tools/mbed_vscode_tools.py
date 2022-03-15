@@ -46,7 +46,11 @@ def validate_vscode_conf_file(
         vscode_conf_entry: str) -> dict:
     """Validate c_cpp_properties.json an return it as a dict."""
     with vscode_conf_file.open(mode='r') as file:
-        vscode_conf = json.load(file)
+        try:
+            vscode_conf = json.load(file)
+        except json.JSONDecodeError:
+            raise Exception(
+                f'Invalid json file: {vscode_conf_file}')
     n = len(list(filter(
         lambda entry: entry['name'] == vscode_conf_entry,
         vscode_conf['configurations'])))
@@ -103,6 +107,7 @@ def update(
     Make sure that your c_cpp_properties.json has an config entry whose name == --vscode-conf-entry in \"configurations\" field.
     The entry is managed and updated by this tool for correct vscode intellisense.
     """
+
     # Check validity of c_cpp_properties.json
     vscode_conf = validate_vscode_conf_file(vscode_conf_file, vscode_conf_entry)
     if verbose:
