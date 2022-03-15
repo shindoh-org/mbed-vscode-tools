@@ -9,7 +9,7 @@ with open(os.path.join(curdir, 'README.md'), 'r', encoding='utf-8') as f:
 
 setuptools.setup(
     name='mbed-vscode-tools',
-    version='0.1.2',
+    version='0.1.3',
     license='MIT',
     install_requires=['click>=7.0.0, <8.0.0'],
     entry_points={
