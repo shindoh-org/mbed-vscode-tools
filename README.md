@@ -2,7 +2,7 @@
 # VSCode Intellisense For Your Mbed Projects
 
 `mbed-vscode-tools` is made for software engineers who want to develop their mbed projects in vscode instead of mbed studio.
-The tool offers a commandline interface to generate and update your c_cpp_properties.json for correct vscode intellisense.
+Our tool offers a commandline interface to generate and update your c_cpp_properties.json for correct vscode intellisense.
 
 ## Notes
 
@@ -61,7 +61,7 @@ Prepare your c_cpp_properties.json **that has \"Mbed\" configuration entry** lik
 
 ### Configure build settings for your mbed project
 
-Make sure you're at the mbed program directory root.
+Make sure you're at an mbed program directory root.
 
 Run the following command:
 
@@ -79,7 +79,7 @@ $ mbed-tools configure -t MBED_TOOLCHAIN -m MBED_TARGET -b MBED_PROFILE
 
 ### Update your c_cpp_properties.json
 
-Make sure you're at the mbed program directory root.
+Make sure you're at an mbed program directory root.
 
 Run the following command to update your c_cpp_properties.json:
 
@@ -90,9 +90,9 @@ $ mbed-vscode-tools update ./cmake_build/{MBED_TARGET}/{MBED_PROFILE}/{MBED_TOOL
 * `VSCODE_CONF_FILE` (required)  
   Path to your c_cpp_properties.json.
 
-If everything goes well, `includePath` and `defines` fields of your c_cpp_properties.json are automatically updated and your vscode intellisense works fine.
+If everything goes well, `includePath` and `defines` fields of your c_cpp_properties.json are automatically updated and your vscode intellisense should work fine.
 
-**Run this command right after every execution of the configure command of mbed-tools.**
+**Run this command right after every execution of `$ mbed-tools configure`.**
 
 ## Documentation
 
@@ -107,17 +107,14 @@ $ mbed-vscode-tools update MBED_BUILD_DIR VSCODE_CONF_FILE [--mbed-program-dir s
 **Positional arguments**:
 
 * `MBED_BUILD_DIR`  
-  The build directory created by the configure command of mbed-tools. If MBED_PROGRAM_DIR is the mbed program directory root,
-  MBED_TOOLCHAIN is the mbed toolchain, MBED_PROFILE is the mbed build profile, and MBED_TARGET is your mbed-enabled board identifier,
-  then the directory will be created as {MBED_PROGRAM_DIR}/cmake_build/{MBED_TARGET}/{MBED_PROFILE}/{MBED_TOOLCHAIN} by
-  `$ mbed-tools configure -t MBED_TOOLCHAIN -m MBED_TARGET -b MBED_PROFILE -p MBED_PROGRAM_DIR`.
+  Set a build directory created by `$ mbed-tools configure`. Generally, set MBED_BUILD_DIR = \{MBED_PROGRAM_DIR\}/cmake_build/\{MBED_TARGET\}/\{MBED_PROFILE\}/\{MBED_TOOLCHAIN\} if you\'ve executed `$ mbed-tools configure -t MBED_TOOLCHAIN -m MBED_TARGET -b MBED_PROFILE -p MBED_PROGRAM_DIR`.
 * `VSCODE_CONF_FILE`  
   Path to your c_cpp_properties.json.
 
 **Options**
 
 * `--mbed-program-dir`  
-  Path to the mbed program directory root. If not specified, it\'s set to your current working directory.
+  Path to an mbed program directory root. If not specified, it\'s set to your current working directory.
 * `--vscode-conf-entry`  
   Specify the target config entry of your c_cpp_properties.json.
   The default parameter is \"Mbed\".
